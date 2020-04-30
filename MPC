@@ -1,0 +1,242 @@
+# Install/add relevant Julia packages
+
+using Pkg
+
+Pkg.add("JuMP")
+Pkg.add("Ipopt")
+Pkg.add("GLPK")
+Pkg.add("Cbc")
+Pkg.add("CSV")
+Pkg.add("DataFrames")
+Pkg.add("OpenDSSDirect")
+Pkg.add("Plots")
+Pkg.add("PyCall")
+
+# Import/load relevant Julia packages
+
+using JuMP
+using Ipopt
+using GLPK
+using Cbc
+using CSV
+using DataFrames
+using OpenDSSDirect
+using Plots
+using PyCall
+
+# run_mpc() takes the previous battery SOC level and MT energy/fuel and current simulation step
+# and returns optimized decisions for restored load, battery, MT and RE curtailment
+
+function run_mpc(SOC_level, Emt_level, step)
+
+    # Define constant paramters
+
+    # %%%
+
+    # Load demand
+
+    load_new = [33, 34, 8.5, 85, 60, 60, 58, 115, 64, 85]
+    importance_factor = [1.0, 1.0, 0.9, 0.85, 0.8, 0.65, 0.45, 0.4, 0.3, 0.3]
+    num_time_steps = 72
+
+    load1 = zeros(1,num_time_steps)
+    load2 = zeros(1,num_time_steps)
+    load3 = zeros(1,num_time_steps)
+    load4 = zeros(1,num_time_steps)
+    load5 = zeros(1,num_time_steps)
+    load6 = zeros(1,num_time_steps)
+    load7 = zeros(1,num_time_steps)
+    load8 = zeros(1,num_time_steps)
+    load9 = zeros(1,num_time_steps)
+    load10 = zeros(1,num_time_steps)
+
+    for l in 1:num_time_steps
+        load1[l] = load_new[1]
+        load2[l] = load_new[2]
+        load3[l] = load_new[3]
+        load4[l] = load_new[4]
+        load5[l] = load_new[5]
+        load6[l] = load_new[6]
+        load7[l] = load_new[7]
+        load8[l] = load_new[8]
+        load9[l] = load_new[9]
+        load10[l] = load_new[10]
+    end
+
+
+    # Load exogenous data - load profile & renewable energy generation profile
+        # Normalized (between 0 and 1) time series data with 5 minutes resolution
+
+    exo_data_path = "/Users/aeseye/Desktop/AGM-Resilience-Project/agm_resilience/agm_resiliency/dss_gym_env/dss_envs/envs/data/13BusCustomed/five_min_load_profile.csv"
+    exo_data = CSV.read(exo_data_path);
+
+    # Print the first six rows of the data
+    first(exo_data, 6)
+    # Data size
+    #println(size(exo_data))
+
+    Pwind = exo_data[:, 3]
+    Ppvv = exo_data[:, 4]
+    Pload = exo_data[:, 5:end];
+
+    WindMAX = 150
+    pvMAX = 300
+
+    # Pick 6 hours (i.e., 72 5-minutes) length exo data
+        # for the 6h horizon (look-ahead) priority-weighted load pick-up optimization
+
+    DURATION = 71
+    #DURATION = 287
+    START_IDX = 1218
+    #START_IDX = 1
+    #NUM_OF_LOAD_BUS = 16
+    NUM_OF_LOAD_BUS = 10
+    FIVE_MIN_TO_HOUR = 5/60;
+    Δt = FIVE_MIN_TO_HOUR
+    #Δt = 1
+    load_profile = [load1; load2; load3; load4; load5; load6; load7; load8; load9; load10]
+    renewable_profile = exo_data[START_IDX:START_IDX+DURATION, 3:4]
+    wind_profile = renewable_profile[:, 1]
+    pv_profile = renewable_profile[:, 2]
+
+    load_profile = DataFrame(load_profile)
+    Actual_Load_Real = load_profile
+
+    wind_max = 150
+    pv_max = 300;
+
+
+    # Obtain the actual power (kW) time series of the renewable generations
+
+    Actual_wind = wind_max .* wind_profile
+    Actual_pv = pv_max .* pv_profile;
+
+
+    # Define constant parameters
+
+    num_nodes = NUM_OF_LOAD_BUS
+    num_time_steps = size(Actual_Load_Real,2)
+    Δt = FIVE_MIN_TO_HOUR
+    #Δt = 1
+    Pl_act = Actual_Load_Real
+    Pwt = Actual_wind
+    Ppv = Actual_pv
+    #load_priority_weight = rand(1:3, num_nodes)
+    #load_priority_weight = [3,3,3,3,3, 2,2,2,2,2, 1,1,1,1,1]
+    load_priority_weight = [1.0, 1.0, 0.9, 0.85, 0.8, 0.65, 0.45, 0.4, 0.3, 0.3]
+    # Buses 5, 11, 3, 15, 19, 21, 26, 28,  and  29  are  randomly  selected,  the  weight  of
+    # which  is  set  to  be  3,  while  the  rest  of  the  load  weight  is  set  to  be  1.
+    PmtMIN = 0
+    PmtMAX = 300
+    PchMAX = 200
+    PdischMAX = 200
+    Emt = 1000 #kWh
+    SOCMIN = 0.20
+    SOCMAX = 1.0
+    SOC0 = 0.90
+    eff_ch = 0.95
+    eff_disch = 0.90
+    Ces = 800; #kWh
+    alpha =  0.02 #$/kWh -- penalty for wind power curtailment
+    beta = 0.02 #$/kWh -- penalty for PV power curtailment
+    #cp = 1 #$/kWh -- cost of power production from the Microturbine;
+
+    # %%%
+
+    NUM_OF_LOAD_BUS = 10
+    FIVE_MIN_TO_HOUR = 5/60
+    Δt = FIVE_MIN_TO_HOUR
+    num_nodes = NUM_OF_LOAD_BUS
+    PmtMIN = 0
+    PmtMAX = 300
+    PchMAX = 200
+    PdischMAX = 200
+    Emt = 1000         # kWh
+    SOCMIN = 0.20      # %
+    SOCMAX = 1.0
+    SOC0 = 0.90
+    eff_ch = 0.95
+    eff_disch = 0.90
+    Ces = 800          #kWh
+    alpha =  0.02      #$/kWh -- penalty for wind power curtailment
+    beta = 0.02        #$/kWh -- penalty for PV power curtailment
+
+    # Create an empty model
+
+    model = Model()
+    set_optimizer(model, GLPK.Optimizer)
+
+    # Decision variables
+
+    @variables model begin
+        Pl[1:num_nodes]
+        Pmt
+        Pch
+        Pdisch
+        SOC
+        Pwt_curt
+        Ppv_curt
+    end
+    @variable(model, bch, Bin)
+    @variable(model, bdisch, Bin)
+
+    # Constraints
+
+    # Power balance at time t1
+
+    @constraint(model,(Pwt[step]-Pwt_curt) + (Ppv[step]-Ppv_curt) + Pmt - Pch + Pdisch == sum(Pl[1:num_nodes]))
+
+    # Load Picked up
+
+    @constraint(model, [i=1:num_nodes],Pl[i] >= 0)
+    @constraint(model, [i=1:num_nodes],Pl[i] <= Pl_act[i,step])
+
+    # Microturbine
+
+    @constraint(model, Pmt >= PmtMIN)
+    @constraint(model, Pmt <= PmtMAX)
+    #@constraint(model,Pmt*Δt <= Emt)
+    @constraint(model, (Emt_level - Pmt*Δt) >= 0)
+
+    # Energy storage
+
+    @constraint(model,Pch >= 0)
+    @constraint(model, Pch <= bch * PchMAX)
+    @constraint(model, Pdisch >= 0)
+    @constraint(model, Pdisch <= bdisch * PdischMAX)
+    @constraint(model, bch + bdisch == 1)
+    @constraint(model, SOC >= SOCMIN)
+    @constraint(model,SOC <= SOCMAX)
+    @constraint(model, SOC == SOC_level + ((eff_ch*Pch/Ces) - (Pdisch/(eff_disch*Ces))) * Δt)
+
+    # Curtailment -- renewable energy generation
+
+    @constraint(model,Pwt_curt >= 0)
+    @constraint(model, Pwt_curt <= Pwt[step])
+    @constraint(model, Ppv_curt >= 0)
+    @constraint(model, Ppv_curt <= Ppv[step])
+
+    # Objective function: maximize the total priority-weighted loads picked up
+
+    @objective(model, Max,
+               sum(load_priority_weight[1:num_nodes] .* Pl[1:num_nodes])
+             - Δt*alpha*Pwt_curt
+             - Δt*beta*Ppv_curt)
+
+    optimize!(model)
+
+    # Extract the model solution
+
+    P_restored = JuMP.value.(Pl)
+    Pmt_gen = JuMP.value.(Pmt)
+    Pbat_charge = -1 .* JuMP.value.(Pch)
+    Pbat_discharge = JuMP.value.(Pdisch)
+    Pbat = Pbat_charge .+ Pbat_discharge
+    SOCbat = JuMP.value.(SOC)
+    Is_Charging = JuMP.value.(bch)
+    Is_Discharging = JuMP.value.(bdisch)
+    Pwt_cut = JuMP.value.(Pwt_curt)
+    Ppv_cut = JuMP.value.(Ppv_curt)
+
+    return P_restored, Pmt_gen, Pbat, SOCbat, Pwt_cut, Ppv_cut
+end
