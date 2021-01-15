@@ -1,0 +1,4 @@
+index,bus,phase,node,p_max,s_max
+wt1,12,1,29,50,70
+wt2,12,2,30,50,70
+wt3,12,3,31,50,70

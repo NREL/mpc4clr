@@ -192,25 +192,25 @@ else
   data_dir = datafile
 end
 
-nodes_raw = CSV.read("data/network_data/$data_dir/nodes_multiphase4.csv", DataFrame)
+nodes_raw = CSV.read("dataset/network_data/$data_dir/nodes_multiphase4.csv", DataFrame)
 sum(nonunique(nodes_raw, :index)) != 0 ? warn("Ambiguous Node Indices") : nothing
 
-lines_raw_singlephase = CSV.read("data/network_data/$data_dir/lines_multiphase.csv", DataFrame)
+lines_raw_singlephase = CSV.read("dataset/network_data/$data_dir/lines_multiphase.csv", DataFrame)
 sum(nonunique(lines_raw_singlephase, :index)) != 0  ? warn("Ambiguous Line Indices") : nothing
 
-lines_raw_multiphase = CSV.read("data/network_data/$data_dir/lines_multiphase2.csv", DataFrame)
+lines_raw_multiphase = CSV.read("dataset/network_data/$data_dir/lines_multiphase2.csv", DataFrame)
 sum(nonunique(lines_raw_multiphase, :index)) != 0  ? warn("Ambiguous Line Indices") : nothing
 
-generators_raw = CSV.read("data/network_data/$data_dir/generators_multiphase.csv", DataFrame)
+generators_raw = CSV.read("dataset/network_data/$data_dir/generators_multiphase.csv", DataFrame)
 sum(nonunique(generators_raw, :index)) != 0 ? warn("Ambiguous Generator Indices") : nothing
 
-windturbines_raw = CSV.read("data/network_data/$data_dir/windturbines_multiphase.csv", DataFrame)
+windturbines_raw = CSV.read("dataset/network_data/$data_dir/windturbines_multiphase.csv", DataFrame)
 sum(nonunique(windturbines_raw, :index)) != 0 ? warn("Ambiguous Wind Turbine Indices") : nothing
 
-pvs_raw = CSV.read("data/network_data/$data_dir/pvs_multiphase.csv", DataFrame)
+pvs_raw = CSV.read("dataset/network_data/$data_dir/pvs_multiphase.csv", DataFrame)
 sum(nonunique(pvs_raw, :index)) != 0 ? warn("Ambiguous PV Indices") : nothing
 
-storages_raw = CSV.read("data/network_data/$data_dir/storages_multiphase.csv", DataFrame)
+storages_raw = CSV.read("dataset/network_data/$data_dir/storages_multiphase.csv", DataFrame)
 sum(nonunique(storages_raw, :index)) != 0 ? warn("Ambiguous Storage Indices") : nothing
 
 # Base values

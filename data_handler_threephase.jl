@@ -151,22 +151,22 @@ else
   data_dir = datafile
 end
 
-nodes_raw = CSV.read("data/network_data/$data_dir/nodes.csv", DataFrame)
+nodes_raw = CSV.read("dataset/network_data/$data_dir/nodes.csv", DataFrame)
 sum(nonunique(nodes_raw, :index)) != 0 ? warn("Ambiguous Node Indices") : nothing
 
-lines_raw = CSV.read("data/network_data/$data_dir/lines.csv", DataFrame)
+lines_raw = CSV.read("dataset/network_data/$data_dir/lines.csv", DataFrame)
 sum(nonunique(lines_raw, :index)) != 0  ? warn("Ambiguous Line Indices") : nothing
 
-generators_raw = CSV.read("data/network_data/$data_dir/generators.csv", DataFrame)
+generators_raw = CSV.read("dataset/network_data/$data_dir/generators.csv", DataFrame)
 sum(nonunique(generators_raw, :index)) != 0 ? warn("Ambiguous Generator Indices") : nothing
 
-windturbines_raw = CSV.read("data/network_data/$data_dir/windturbines.csv", DataFrame)
+windturbines_raw = CSV.read("dataset/network_data/$data_dir/windturbines.csv", DataFrame)
 sum(nonunique(windturbines_raw, :index)) != 0 ? warn("Ambiguous Wind Turbine Indices") : nothing
 
-pvs_raw = CSV.read("data/network_data/$data_dir/pvs.csv", DataFrame)
+pvs_raw = CSV.read("dataset/network_data/$data_dir/pvs.csv", DataFrame)
 sum(nonunique(pvs_raw, :index)) != 0 ? warn("Ambiguous PV Indices") : nothing
 
-storages_raw = CSV.read("data/network_data/$data_dir/storages.csv", DataFrame)
+storages_raw = CSV.read("dataset/network_data/$data_dir/storages.csv", DataFrame)
 sum(nonunique(storages_raw, :index)) != 0 ? warn("Ambiguous Storage Indices") : nothing
 
 # Base values

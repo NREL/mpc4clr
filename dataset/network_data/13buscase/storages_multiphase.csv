@@ -1,0 +1,4 @@
+index,bus,phase,node,p_max,s_max,SOC_max,SOC_min,eff_char,eff_dischar,capacity
+s1,4,1,4,66.67,75,100,20,95,90,266.67
+s2,4,2,5,66.67,75,100,20,95,90,266.67
+s3,4,3,6,66.67,75,100,20,95,90,266.67
