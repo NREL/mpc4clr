@@ -70,8 +70,8 @@ New linecode.mtx602 nphases=3 BaseFreq=60
 ~ units=mi
 
 New linecode.mtx603 nphases=2 BaseFreq=60
-~ rmatrix = (1.3238 | 0.2066 1.3294 )
-~ xmatrix = (1.3569 | 0.4591 1.3471 )
+~ rmatrix = (1.3294 | 0.2066 1.3238 )
+~ xmatrix = (1.3471 | 0.4591 1.3569 )
 ~ units=mi
 
 New linecode.mtx604 nphases=2 BaseFreq=60

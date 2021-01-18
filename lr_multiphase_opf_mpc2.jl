@@ -152,66 +152,79 @@ function opf_mpc(nodes, lines_singlephase, lines_multiphase, generators, windtur
         Z12 = Zs1*(2000)*convfm
         Z12i = pinv(Z12)
         Y12 = 0.5*Ys1*(2000)*convfm
+        Z12 = Z12 + pinv(Y12)
 
         # Line '632'-'670' lincode = 601
         Z23 = Zs1*(667)*convfm
         Z23i = pinv(Z23)
         Y23 = 0.5*Ys1*(667)*convfm
+        Z23 = Z23 + pinv(Y23)
 
         # Line '632'-'633' linecode = 602
         Z26 = Zs2*(500)*convfm
         Z26i = pinv(Z26)
         Y26 = 0.5*Ys2*(500)*convfm
+        Z26 = Z26 + pinv(Y26)
 
         # Line '632'-'645' linecode = 603
         Z28 = Zs3*(500)*convfm
         Z28i = pinv(Z28)
         Y28 = 0.5*Ys3*(500)*convfm
+        Z28 = Z28 + pinv(Y28)
 
         # Line '670'-'671' linecode = 601
         Z34 = Zs1*(1333)*convfm
         Z34i = pinv(Z34)
         Y34 = 0.5*Ys1*(1333)*convfm
+        Z34 = Z34 + pinv(Y34)
 
         # Line '671'-'680' linecode = 601
         Z45 = Zs1*(1000)*convfm
         Z45i = pinv(Z45)
         Y45 = 0.5*Ys1*(1000)*convfm
+        Z45 = Z45 + pinv(Y45)
 
         # Line '671'-'692' linecode = 606
         Z410 = Zs6*(10)*convfm
         Z410i = pinv(Z410)
         Y410 = 0.5*Ys6*(10)*convfm
+        Z410 = Z410 + pinv(Y410)
 
         # Line '671'-'684' linecode = 604
         Z412 = Zs4*(300)*convfm
         Z412i = pinv(Z412)
         Y412 = 0.5*Ys4*(300)*convfm
+        Z412  = Z412 + pinv(Y412)
 
         # Line '633'-'634' linecode = 602
         Z67 = Zs2*(10)*convfm
         Z67i = pinv(Z67)
         Y67 = 0.5*Ys2*(10)*convfm
+        Z67 = Z67 + pinv(Y67)
 
         # Line '645'-'646' linecode = 603
         Z89 = Zs3*(300)*convfm
         Z89i = pinv(Z89)
         Y89 = 0.5*Ys3*(300)*convfm
+        Z89 = Z89 + pinv(Y89)
 
         # Line '692'-'675' linecode = 606
         Z1011 = Zs6*(500)*convfm
         Z1011i = pinv(Z1011)
         Y1011 = 0.5*Ys6*(500)*convfm
+        Z1011 = Z1011 + pinv(Y1011)
 
         # Line '684'-'611' linecode = 605
         Z1213 = Zs5*(300)*convfm
         Z1213i = pinv(Z1213)
         Y1213 = 0.5*Ys5*(300)*convfm
+        Z1213 = Z1213 + pinv(Y1213)
 
         # Line '684'-'652' linecode = 607
         Z1214 = Zs7*(800)*convfm
         Z1214i = pinv(Z1214)
         Y1214 = 0.5*Ys7*(800)*convfm
+        Z1214 = Z1214 + pinv(Y1214)
 
         # Network admittance matrix
 
@@ -661,7 +674,7 @@ function opf_mpc(nodes, lines_singlephase, lines_multiphase, generators, windtur
                         @constraint(m, v[b,t] == v[b_ancestor,t]
                         - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                         - (-lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b+1,t]
-                        + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b+1,t])
+                        - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b+1,t])
                     elseif phases[1]==1 && phases[2]==3
                         #println("13")
                         @constraint(m, v[b,t] == v[b_ancestor,t]
@@ -679,13 +692,13 @@ function opf_mpc(nodes, lines_singlephase, lines_multiphase, generators, windtur
                         @constraint(m, v[b,t] == v[b_ancestor,t]
                         - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                         - (-lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b-1,t]
-                        + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b-1,t])
+                        - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b-1,t])
                     elseif phases[1]==3 && phases[2]==1
                         #println("31")
                         @constraint(m, v[b,t] == v[b_ancestor,t]
                             - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                             - (-lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b-1,t]
-                            + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b-1,t])
+                            - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b-1,t])
 
                     elseif phases[1]==3 && phases[2]==2
                         #println("32")
@@ -706,14 +719,14 @@ function opf_mpc(nodes, lines_singlephase, lines_multiphase, generators, windtur
                             @constraint(m, v[b,t] == v[b_ancestor,t]
                                     - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                                     - (-lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b+1,t]
-                                    + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b+1,t]
+                                    - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b+1,t]
                                     + (lines_multiphase_to[bs].r[phases[1],phases[3]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[3]])*fp[b+2,t]
                                     - (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]-lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b+2,t])
                         else
                             @constraint(m, v[b,t] == v[b_ancestor,t]
                                     - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                                     - (-lines_multiphase_to[bs].r[phases[1],phases[3]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[3]])*fp[b+1,t]
-                                    + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]+lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b+1,t]
+                                    - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]+lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b+1,t]
                                     + (lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b+2,t]
                                     - (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]-lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b+2,t])
                         end
@@ -725,14 +738,14 @@ function opf_mpc(nodes, lines_singlephase, lines_multiphase, generators, windtur
                                     + (lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b-1,t]
                                     - (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]-lines_multiphase_to[bs].x[phases[1],phases[1]])*fq[b-1,t]
                                     - (-lines_multiphase_to[bs].r[phases[1],phases[3]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[3]])*fp[b+1,t]
-                                    + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]+lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b+1,t])
+                                    - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]+lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b+1,t])
                         else
                             @constraint(m, v[b,t] == v[b_ancestor,t]
                                     - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                                     + (lines_multiphase_to[bs].r[phases[1],phases[3]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[3]])*fp[b-1,t]
                                     - (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]-lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b-1,t]
                                     - (-lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b+1,t]
-                                    + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b+1,t])
+                                    - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b+1,t])
                         end
                     elseif phases[1]==3
                         #println("312")
@@ -740,14 +753,14 @@ function opf_mpc(nodes, lines_singlephase, lines_multiphase, generators, windtur
                             @constraint(m, v[b,t] == v[b_ancestor,t]
                                     - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                                     - (-lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b-2,t]
-                                    + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b-2,t]
+                                    - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]+lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b-2,t]
                                     + (lines_multiphase_to[bs].r[phases[1],phases[3]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[3]])*fp[b-1,t]
                                     - (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]-lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b-1,t])
                         else
                             @constraint(m, v[b,t] == v[b_ancestor,t]
                                     - 2*(lines_multiphase_to[bs].r[phases[1],phases[1]]*fp[b,t] + lines_multiphase_to[bs].x[phases[1],phases[1]]*fq[b,t])
                                     - (-lines_multiphase_to[bs].r[phases[1],phases[3]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[3]])*fp[b-2,t]
-                                    + (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]+lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b-2,t]
+                                    - (-sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[3]]+lines_multiphase_to[bs].x[phases[1],phases[3]])*fq[b-2,t]
                                     + (lines_multiphase_to[bs].r[phases[1],phases[2]]+sqrt(3)*lines_multiphase_to[bs].x[phases[1],phases[2]])*fp[b-1,t]
                                     - (sqrt(3)*lines_multiphase_to[bs].r[phases[1],phases[2]]-lines_multiphase_to[bs].x[phases[1],phases[2]])*fq[b-1,t])
                         end

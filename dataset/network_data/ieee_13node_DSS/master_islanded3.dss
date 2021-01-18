@@ -8,13 +8,16 @@ Redirect IEEE13busLineCodes.dss
 
 ! Loads
 
-New Load.671 Bus1=671.1.2.3  Phases=3 Conn=Delta Model=1 kV=4.16   kW=150 kvar=80
+!New Load.671 Bus1=671.1.2.3  Phases=3 Conn=Delta Model=1 kV=4.16   kW=150 kvar=80
+New Load.671 Bus1=671.1.2.3  Phases=3 Conn=Wye Model=1 kV=4.16   kW=150 kvar=80
 New Load.634a Bus1=634.1     Phases=1 Conn=Wye  Model=1 kV=2.4  kW=80   kvar=50
 New Load.634b Bus1=634.2     Phases=1 Conn=Wye  Model=1 kV=2.4  kW=60   kvar=35
 New Load.634c Bus1=634.3     Phases=1 Conn=Wye  Model=1 kV=2.4  kW=60   kvar=30
 New Load.645 Bus1=645.2       Phases=1 Conn=Wye  Model=1 kV=2.4      kW=85   kvar=52
-New Load.646 Bus1=646.2.3    Phases=1 Conn=Delta Model=1 kV=4.16    kW=115   kvar=66
-New Load.692 Bus1=692.1.2.3    Phases=3 Conn=Delta Model=1 kV=4.16    kW=85   kvar=45
+!New Load.646 Bus1=646.2.3    Phases=1 Conn=Delta Model=1 kV=4.16    kW=115   kvar=66
+New Load.646 Bus1=646.2    Phases=1 Conn=Wye Model=1 kV=2.4    kW=115   kvar=66
+!New Load.692 Bus1=692.1.2.3    Phases=3 Conn=Delta Model=1 kV=4.16    kW=85   kvar=45
+New Load.692 Bus1=692.1.2.3    Phases=3 Conn=Wye Model=1 kV=4.16    kW=85   kvar=45
 New Load.675a Bus1=675.1    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=145   kvar=65
 New Load.675b Bus1=675.2    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=34   kvar=20
 New Load.675c Bus1=675.3    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=145   kvar=56
@@ -32,8 +35,8 @@ New Line.670671    Phases=3 Bus1=670.1.2.3    Bus2=671.1.2.3  LineCode=mtx601 Le
 New Line.671680    Phases=3 Bus1=671.1.2.3    Bus2=680.1.2.3  LineCode=mtx601 Length=1000 units=ft
 New Line.632633    Phases=3 Bus1=632.1.2.3    Bus2=633.1.2.3  LineCode=mtx602 Length=500  units=ft
 New Line.633634    Phases=3 Bus1=633.1.2.3    Bus2=634.1.2.3  LineCode=mtx602 Length=10  units=ft
-New Line.632645    Phases=2 Bus1=632.3.2      Bus2=645.3.2    LineCode=mtx603 Length=500  units=ft
-New Line.645646    Phases=2 Bus1=645.3.2      Bus2=646.3.2    LineCode=mtx603 Length=300  units=ft
+New Line.632645    Phases=2 Bus1=632.2.3      Bus2=645.2.3    LineCode=mtx603 Length=500  units=ft
+New Line.645646    Phases=2 Bus1=645.2.3      Bus2=646.2.3    LineCode=mtx603 Length=300  units=ft
 New Line.692675    Phases=3 Bus1=692.1.2.3    Bus2=675.1.2.3  LineCode=mtx606 Length=500  units=ft
 New Line.671692    Phases=3 Bus1=671.1.2.3    Bus2=692.1.2.3  LineCode=mtx606 Length=10  units=ft
 New Line.671684    Phases=2 Bus1=671.1.3      Bus2=684.1.3    LineCode=mtx604 Length=300  units=ft
