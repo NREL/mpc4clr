@@ -172,7 +172,7 @@ sum(nonunique(storages_raw, :index)) != 0 ? warn("Ambiguous Storage Indices") : 
 # Base values
 
 Zbase = 1
-Vbase = 4600
+Vbase = 4160
 Sbase = (Vbase^2)/Zbase
 Cbase = 800
 
