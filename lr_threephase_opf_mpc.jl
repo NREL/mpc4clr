@@ -40,7 +40,7 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
     # Base values
 
     Zbase = 1
-    Vbase = 4600
+    Vbase = 4160
     Sbase = (Vbase^2)/Zbase
     Cbase = 800
 
@@ -348,7 +348,7 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
 
     bus_results_V = DataFrame(bus = Any[], time = Any[], voltage = Any[])
 
-    line_results = DataFrame(line = Any[], from = Any[], to = Any[], time = Any[], f_P = Any[], f_Q = Any[], current = Any[])
+    line_results = DataFrame(line = Any[], from = Any[], to = Any[], time = Any[], f_P = Any[], f_Q = Any[], a_squared = Any[])
 
     for b in bus_set
         for t in time_set
@@ -361,6 +361,22 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
             push!(bus_results_Q, resQ)
             resV = [b, t, sqrt(getvalue(v[b,t]))]
             push!(bus_results_V, resV)
+        end
+    end
+
+    for b in bus_set
+        for t in time_set
+            # Calc square current on line
+            a_res = 0
+            fp_res = getvalue(fp[b,t])*Sbase/1000
+            fq_res = getvalue(fq[b,t])*Sbase/1000
+            #if b != root_node
+            if b in setdiff(bus_set, root_bus)
+                v_res = getvalue(v[buses[b].ancestor[1],t])
+                a_res = (fp_res^2 + fq_res^2)/v_res
+                lres = [lines_to[b].index, buses[b].ancestor[1], b, t, fp_res, fq_res, a_res]
+                push!(line_results, lres)
+            end
         end
     end
 
@@ -462,13 +478,15 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
     tobus = zeros(num_lines)
     P_lineflow = zeros(num_lines, num_time_steps)
     Q_lineflow = zeros(num_lines, num_time_steps)
-    #for ldx in 1:num_lines
-        #frombus[ldx] = line_results["from"][1+(ldx-1)*num_time_steps]
-        #tobus[ldx] = line_results["to"][1+(ldx-1)*num_time_steps]
-    #    P_lineflow[ldx,:] = line_results["f_P"][1+(ldx-1)*num_time_steps:ldx*num_time_steps]
-    #    Q_lineflow[ldx,:] = line_results["f_Q"][1+(ldx-1)*num_time_steps:ldx*num_time_steps]
-    #end
+    P_lineflow = zeros(num_lines, num_time_steps)
+    Q_lineflow = zeros(num_lines, num_time_steps)
+    for ldx in 1:num_lines
+        frombus[ldx] = line_results[!,"from"][1+(ldx-1)*num_time_steps]
+        tobus[ldx] = line_results[!,"to"][1+(ldx-1)*num_time_steps]
+        P_lineflow[ldx,:] = line_results[!,"f_P"][1+(ldx-1)*num_time_steps:ldx*num_time_steps]
+        Q_lineflow[ldx,:] = line_results[!,"f_Q"][1+(ldx-1)*num_time_steps:ldx*num_time_steps]
+    end
 
-    return objective_value, P_restored, Q_restored, Pmt, Qmt, Pwtb, Pwt_cut, Ppvs, Ppv_cut, Pes, Qes, SOC_es, voltages, mu_P, mu_Q
-    #return objective_value, P_restored, Q_restored, Pmt, Qmt, Pwtb, Pwt_cut, Qwt_inv, Ppvs, Ppv_cut, Qpv_inv, Pes, Qes, SOC_es, voltages
+    return objective_value, P_restored, Q_restored, Pmt, Qmt, Pwtb, Pwt_cut, Ppvs, Ppv_cut, Pes, Qes, SOC_es, voltages, mu_P, mu_Q, frombus, tobus, P_lineflow, Q_lineflow
+
 end
