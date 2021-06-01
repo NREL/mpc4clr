@@ -8,7 +8,7 @@ Redirect IEEE13busLineCodes_balanced_3phase.dss
 
 ! Loads
 
-New Load.632 Bus1=632.1.2.3  	Phases=3 Conn=Wye 	Model=1 kV=4.16   	kW=49.75 	kvar=29
+New Load.633 Bus1=633.1.2.3  	Phases=3 Conn=Wye 	Model=1 kV=4.16   	kW=49.75 	kvar=29
 New Load.671 Bus1=671.1.2.3  	Phases=3 Conn=Wye 	Model=1 kV=4.16   	kW=199.75 	kvar=109
 New Load.634 Bus1=634.1.2.3     Phases=3 Conn=Wye  	Model=1 kV=4.16  	kW=200  	kvar=115
 New Load.645 Bus1=645.1.2.3     Phases=3 Conn=Wye  	Model=1 kV=4.16     	kW=85   	kvar=52
