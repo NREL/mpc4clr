@@ -4,18 +4,19 @@
 
 #using Pkg
 #Pkg.add("JuMP")
-#Pkg.add("GLPK")
+#Pkg.add("Cbc")
 #Pkg.add("PyCall")
 
 # Import/load relevant Julia packages
 
 using JuMP
-using GLPK
+using Cbc
 using PyCall
 
 # opf-mpc = Network-aware (OPF-driven) MPC for Distribution Grid Optimal Control/Dispatch
 
-function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_horizon, es_soc, mt_energy, wt_power, pv_power, active_power_demanded, reactive_power_demanded, active_power_restored, reactive_power_restored)
+function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_horizon, es_soc, mt_energy, wt_power, pv_power,
+    active_power_demanded, reactive_power_demanded, active_power_restored, reactive_power_restored)
 
     # Rearrange the inputs to the opf
 
@@ -29,6 +30,7 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
 
     num_buses = length(buses)
     load_buses = findall(Pdemand[:,1] .!= 0.0)
+
     num_load_buses = length(load_buses)
     Δt = 5/60
 
@@ -36,7 +38,6 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
     alpha =  0.2          #$/kWh -- penalty for wind power curtailment
     beta = 0.2            #$/kWh -- penalty for PV power curtailment
     psi = 100             #$/kWh -- penalty (to relaxed hard constraints) for violation to the objective function
-    load_priority_min = 0.3
 
     # Base values
 
@@ -108,7 +109,7 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
     # Create an empty/abstract optimization model
 
     m = Model()
-    set_optimizer(m, GLPK.Optimizer)
+    set_optimizer(m, Cbc.Optimizer)
 
     # Define the decision variables
 
@@ -124,10 +125,9 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
         spd[bus_set, time_set]         # variable for ES active power discharging
         sqd[bus_set, time_set]         # variable for ES reactive power injection
         ssoc[bus_set, time_set]        # variable for ES state of chrge
-        #soc_shortfall[bus_set]         # variable for ES end SOC
 
         wdp[bus_set, time_set]         # variable for active power control (Wind conveter)
-        #wdq[bus_set, time_set]         # variable for reactive injection/absorption (Wind converter)
+        #wdq[bus_set, time_set]        # variable for reactive injection/absorption (Wind converter)
         wdpc[bus_set, time_set]        # variable for Wind power curtailment
 
         pvp[bus_set, time_set]         # variable for active power control (PV Inverter)
@@ -155,8 +155,6 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
                      - Δt*alpha*sum(wdpc[b,t] for b in wind_bus for t in time_set)
                      - Δt*beta*sum(pvpc[b,t] for b in pv_bus for t in time_set))
 
-                    # - Δt*(psi/5)*sum(load_priority_min*buses[b].storage.s_cap .* soc_shortfall[b] for b in stor_bus)
-
     # Constraints
 
     for b in gen_bus
@@ -171,8 +169,8 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
 
     for b in gen_bus
     # All buses with generators - fuel usage /energy production/ limit
-        @constraint(m, sum(gp[b,t] for t in time_set)*Sbase*Δt/1000 <= 0.8*mt_energy)
-        @constraint(m, sum(gq[b,t] for t in time_set)*Sbase*Δt/1000 <= 0.8*0.75*mt_energy)
+        @constraint(m, sum(gp[b,t] for t in time_set)*Sbase*Δt/1000 <= mt_energy)
+        @constraint(m, sum(gq[b,t] for t in time_set)*Sbase*Δt/1000 <= 0.75*mt_energy)
     end
 
     for b in wind_bus
@@ -222,13 +220,6 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
             if t > 1
                 @constraint(m, ssoc[b,t] == ssoc[b,t-1] + (((buses[b].storage.s_eff_char/100)*spc[b,t]/buses[b].storage.s_cap) -
                 (spd[b,t]/((buses[b].storage.s_eff_dischar/100)*buses[b].storage.s_cap))))
-            end
-
-            if t == time_set[end]
-                @constraint(m, ssoc[b,t] >= 0.5*es_soc/100)
-                #@constraint(m, ssoc[b,t] >= 0.5*es_soc/100 - soc_shortfall[b])
-                #@constraint(m, soc_shortfall[b] >= 0)
-                #@constraint(m, soc_shortfall[b] <= 1)
             end
         end
     end
@@ -410,64 +401,15 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
         mu_Q[b,:] = bus_results_Q[!,"mu_QQ"][(b-1)*num_time_steps+1:(b-1)*num_time_steps+num_time_steps]
     end
 
-    #Pmt_1p = zeros(length(gen_bus), num_time_steps)
-    #Qmt_1p = zeros(length(gen_bus), num_time_steps)
-    #m = 1
-    #for b in gen_bus
-    #    Pmt_1p[m,:] = bus_results_P["g_P"][(gen_bus[m]-1)*num_time_steps+1:(gen_bus[m]-1)*num_time_steps+num_time_steps]
-    #    Qmt_1p[m,:] = bus_results_Q["g_Q"][(gen_bus[m]-1)*num_time_steps+1:(gen_bus[m]-1)*num_time_steps+num_time_steps]
-    #    m +=1
-    #end
-    #Pmt = zeros(1, num_time_steps)
-    #Qmt = zeros(1, num_time_steps)
-    #for mdx in 1:num_time_steps
-    #    Pmt[mdx] = sum(Pmt_1p[:,mdx])
-    #    Qmt[mdx] = sum(Qmt_1p[:,mdx])
-    #end
-
     Pmt = bus_results_P[!,"g_P"][(gen_bus[1]-1)*num_time_steps+1:(gen_bus[1]-1)*num_time_steps+num_time_steps]
     Qmt = bus_results_Q[!,"g_Q"][(gen_bus[1]-1)*num_time_steps+1:(gen_bus[1]-1)*num_time_steps+num_time_steps]
 
-
-    #Pwtb_1p = zeros(length(wind_bus), num_time_steps)
-    #Pwt_cut_1p = zeros(length(wind_bus), num_time_steps)
-    #w = 1
-    #for b in wind_bus
-    #    Pwtb_1p[w,:] = bus_results_P["wind_P"][(wind_bus[w]-1)*num_time_steps+1:(wind_bus[w]-1)*num_time_steps+num_time_steps]
-    #    Pwt_cut_1p[w,:] = bus_results_P["wind_Pcut"][(wind_bus[w]-1)*num_time_steps+1:(wind_bus[w]-1)*num_time_steps+num_time_steps]
-    #    w +=1
-    #end
-    #Pwtb = zeros(1, num_time_steps)
-    #Pwt_cut = zeros(1, num_time_steps)
-    #for wdx in 1:num_time_steps
-    #    Pwtb[wdx] = sum(Pwtb_1p[:,wdx])
-    #    Pwt_cut[wdx] = sum(Pwt_cut_1p[:,wdx])
-    #end
-
     Pwtb = bus_results_P[!,"wind_P"][(wind_bus[1]-1)*num_time_steps+1:(wind_bus[1]-1)*num_time_steps+num_time_steps]
     Pwt_cut = bus_results_P[!,"wind_Pcut"][(wind_bus[1]-1)*num_time_steps+1:(wind_bus[1]-1)*num_time_steps+num_time_steps]
-
-
-    #Ppvs_1p = zeros(length(pv_bus), num_time_steps)
-    #Ppv_cut_1p = zeros(length(pv_bus), num_time_steps)
-    #p = 1
-    #for b in pv_bus
-    #    Ppvs_1p[p,:] = bus_results_P["pv_P"][(pv_bus[p]-1)*num_time_steps+1:(pv_bus[p]-1)*num_time_steps+num_time_steps]
-    #    Ppv_cut_1p[p,:] = bus_results_P["pv_Pcut"][(pv_bus[p]-1)*num_time_steps+1:(pv_bus[p]-1)*num_time_steps+num_time_steps]
-    #    p +=1
-    #end
-    #Ppvs = zeros(1, num_time_steps)
-    #Ppv_cut = zeros(1, num_time_steps)
-    #for pdx in 1:num_time_steps
-    #    Ppvs[pdx] = sum(Ppvs_1p[:,pdx])
-    #    Ppv_cut[pdx] = sum(Ppv_cut_1p[:,pdx])
-    #end
+    #Qwt_inv = bus_results_Q["wind_Q"][(wind_bus[1]-1)*num_time_steps+1:(wind_bus[1]-1)*num_time_steps+num_time_steps]
 
     Ppvs = bus_results_P[!,"pv_P"][(pv_bus[1]-1)*num_time_steps+1:(pv_bus[1]-1)*num_time_steps+num_time_steps]
     Ppv_cut = bus_results_P[!,"pv_Pcut"][(pv_bus[1]-1)*num_time_steps+1:(pv_bus[1]-1)*num_time_steps+num_time_steps]
-
-
-    #Qwt_inv = bus_results_Q["wind_Q"][(wind_bus[1]-1)*num_time_steps+1:(wind_bus[1]-1)*num_time_steps+num_time_steps]
     #Qpv_inv = bus_results_Q["pv_Q"][(pv_bus[1]-1)*num_time_steps+1:(pv_bus[1]-1)*num_time_steps+num_time_steps]
 
     Pes_char = -1 .* bus_results_P[!,"s_Pch"][(stor_bus[1]-1)*num_time_steps+1:(stor_bus[1]-1)*num_time_steps+num_time_steps]
@@ -500,5 +442,4 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
 
     return objective_value, P_restored, Q_restored, Pmt, Qmt, Pwtb, Pwt_cut, Ppvs, Ppv_cut,
         Pes, Qes, SOC_es, voltages, mu_P, mu_Q, frombus, tobus, P_lineflow, Q_lineflow
-
 end
