@@ -4,13 +4,13 @@
 
 #using Pkg
 #Pkg.add("JuMP")
-#Pkg.add("GLPK")
+#Pkg.add("Cbc")
 #Pkg.add("PyCall")
 
 # Import/load relevant Julia packages
 
 using JuMP
-using GLPK
+using Cbc
 using PyCall
 
 # opf-mpc = Network-aware (OPF-driven) MPC for Distribution Grid Optimal Control/Dispatch
@@ -111,7 +111,7 @@ function opf_mpc(buses, lines, generators, windturbines, pvs, storages, control_
     # Create an empty/abstract optimization model
 
     m = Model()
-    set_optimizer(m, GLPK.Optimizer)
+    set_optimizer(m, Cbc.Optimizer)
 
     # Define the decision variables
 
