@@ -1,9 +1,9 @@
 #  ___________________________________________________________________________
 #
 # MPC4CLR: Model Predictive Control for Critical Load Restoration 
-#          in Power Distribution Systems 
-# Copyright 2022 National Renewable Energy Laboratory (NREL) 
-# This software is distributed under the Revised BSD License.
+#          in Power Distribution Systems. 
+# (c) 2022 Alliance for Sustainable Energy, LLC.
+# This software is distributed under the BSD 3-clause license.
 #  ___________________________________________________________________________
 
 
@@ -25,7 +25,7 @@ setup(
     url='https://github.nrel.gov/AGM-CSSO/Optimization_for_Grid_Resiliency/tree/MPC4CLR', # TODO: Update this url when the repo moves to github.com
     author='Abinet Tesfaye Eseye, Xiangyu Zhang, Bernard Knueven, Matthew Reynolds, Weijia Liu, and Wesley Jones',
     maintainer_email='Wesley.Jones@nrel.gov', # TODO: update the email if needed
-    license='Revised BSD',
+    license='BSD 3-clause',
     packages=find_packages(),  
     scripts=[],
     include_package_data=True,
